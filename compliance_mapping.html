@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Compliance Mapping — Meridian Financial Group</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d0f14;
+    --surface: #13161e;
+    --surface2: #1a1e28;
+    --border: #252a38;
+    --text: #c9d1e0;
+    --muted: #5a6478;
+    --accent: #00a8ff;
+    --critical: #ff3b5c;
+    --high: #ff7b00;
+    --medium: #f5c400;
+    --low: #2ecc71;
+    --info: #5b8df6;
+    --nist-bg: rgba(99,102,241,0.12);
+    --nist-text: #a5b4fc;
+    --nist-border: rgba(99,102,241,0.3);
+    --iso-bg: rgba(20,184,166,0.12);
+    --iso-text: #5eead4;
+    --iso-border: rgba(20,184,166,0.3);
+    --pci-bg: rgba(245,158,11,0.12);
+    --pci-text: #fcd34d;
+    --pci-border: rgba(245,158,11,0.3);
+    --mono: 'IBM Plex Mono', monospace;
+    --sans: 'IBM Plex Sans', sans-serif;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background: var(--bg); color: var(--text); font-family: var(--sans); font-size:14px; min-height:100vh; }
+
+  .header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 0 32px;
+    display: flex; align-items: center; justify-content: space-between;
+    height: 56px;
+  }
+  .logo { display:flex; align-items:center; gap:12px; }
+  .logo-mark {
+    width:28px; height:28px; background: var(--accent);
+    clip-path: polygon(0 0,100% 0,100% 70%,70% 100%,0 100%);
+  }
+  .logo-text { font-family: var(--mono); font-size:13px; font-weight:600; color:#fff; letter-spacing:1px; }
+  .logo-sub { font-size:11px; color: var(--muted); font-family: var(--mono); }
+  .header-meta { display:flex; align-items:center; gap:16px; }
+  .scan-badge { background:#1e3a2f; border:1px solid #2ecc7133; color:#2ecc71; font-family:var(--mono); font-size:11px; padding:4px 10px; border-radius:2px; }
+
+  .main { padding: 28px 32px; }
+
+  .page-title { font-family: var(--mono); font-size:13px; color:#fff; font-weight:600; margin-bottom:4px; }
+  .page-sub { font-family: var(--mono); font-size:11px; color: var(--muted); margin-bottom:24px; }
+
+  /* LEGEND */
+  .legend { display:flex; gap:16px; margin-bottom:20px; flex-wrap:wrap; }
+  .leg { display:flex; align-items:center; gap:6px; font-family:var(--mono); font-size:11px; color:var(--muted); }
+  .leg-dot { width:8px; height:8px; border-radius:2px; }
+
+  /* FILTERS */
+  .filter-bar { display:flex; gap:8px; margin-bottom:20px; flex-wrap:wrap; align-items:center; }
+  .filter-label { font-family:var(--mono); font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:1px; margin-right:4px; }
+  .pill {
+    font-family:var(--mono); font-size:10px; padding:4px 10px;
+    border-radius:2px; border:1px solid var(--border);
+    background: var(--surface); color: var(--muted);
+    cursor:pointer; transition: all .15s; letter-spacing:.5px;
+  }
+  .pill:hover { color: var(--text); border-color: #3a4055; }
+  .pill.active { background: rgba(0,168,255,0.1); color: var(--accent); border-color: rgba(0,168,255,0.35); }
+  .pill.c-active { background: rgba(255,59,92,0.1); color: var(--critical); border-color: rgba(255,59,92,0.35); }
+  .pill.h-active { background: rgba(255,123,0,0.1); color: var(--high); border-color: rgba(255,123,0,0.35); }
+  .pill.m-active { background: rgba(245,196,0,0.1); color: var(--medium); border-color: rgba(245,196,0,0.35); }
+  .pill.l-active { background: rgba(46,204,113,0.1); color: var(--low); border-color: rgba(46,204,113,0.35); }
+
+  /* TABLE */
+  .table-wrap { background: var(--surface); border:1px solid var(--border); border-radius:4px; overflow:hidden; }
+  table { width:100%; border-collapse:collapse; }
+  thead th {
+    background: var(--surface2); padding:10px 14px;
+    text-align:left; font-family:var(--mono); font-size:10px;
+    color:var(--muted); text-transform:uppercase; letter-spacing:1px;
+    font-weight:500; border-bottom:1px solid var(--border);
+    white-space:nowrap;
+  }
+  tbody tr { border-bottom:1px solid var(--border); cursor:pointer; transition: background .1s; }
+  tbody tr:last-child { border-bottom:none; }
+  tbody tr:hover td { background: var(--surface2); }
+  tbody tr.open td { background: rgba(0,168,255,0.03); }
+  td { padding:11px 14px; vertical-align:middle; }
+
+  .sev-pill {
+    display:inline-block; font-family:var(--mono); font-size:10px;
+    padding:2px 8px; border-radius:2px; font-weight:600; white-space:nowrap;
+  }
+  .sev-Critical { background:rgba(255,59,92,0.15); color:var(--critical); border:1px solid rgba(255,59,92,0.3); }
+  .sev-High     { background:rgba(255,123,0,0.15); color:var(--high);     border:1px solid rgba(255,123,0,0.3); }
+  .sev-Medium   { background:rgba(245,196,0,0.15); color:var(--medium);   border:1px solid rgba(245,196,0,0.3); }
+  .sev-Low      { background:rgba(46,204,113,0.15); color:var(--low);     border:1px solid rgba(46,204,113,0.3); }
+
+  .tag {
+    display:inline-block; font-family:var(--mono); font-size:10px;
+    padding:2px 6px; border-radius:2px; margin:2px 2px 2px 0;
+    white-space:nowrap;
+  }
+  .tag-nist { background:var(--nist-bg); color:var(--nist-text); border:1px solid var(--nist-border); }
+  .tag-iso  { background:var(--iso-bg);  color:var(--iso-text);  border:1px solid var(--iso-border); }
+  .tag-pci  { background:var(--pci-bg);  color:var(--pci-text);  border:1px solid var(--pci-border); }
+  .tag-more { background:var(--surface2); color:var(--muted); border:1px solid var(--border); }
+
+  .vuln-name { font-weight:500; color:#fff; font-size:13px; }
+  .host-meta { font-family:var(--mono); font-size:11px; color:var(--muted); margin-top:3px; }
+
+  .chevron { font-size:10px; color:var(--muted); transition:transform .2s; display:inline-block; margin-right:4px; }
+  tr.open .chevron { transform:rotate(90deg); }
+
+  /* DETAIL ROW */
+  .detail-cell { padding:0 !important; }
+  .detail-inner {
+    background: var(--surface2); border-top:1px solid var(--border);
+    padding:16px 20px;
+  }
+  .detail-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:16px; margin-bottom:14px; }
+  .dg-label { font-family:var(--mono); font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:1px; margin-bottom:6px; }
+  .dg-tags { display:flex; flex-wrap:wrap; gap:4px; }
+  .rationale-block {
+    background: var(--bg); border:1px solid var(--border); border-radius:3px;
+    padding:12px 14px; font-size:12px; color:var(--text); line-height:1.7;
+    font-family:var(--mono); border-top:1px solid var(--border);
+    margin-top:2px;
+  }
+  .rationale-label { font-family:var(--mono); font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:1px; margin-bottom:6px; }
+
+  .empty { padding:40px; text-align:center; color:var(--muted); font-family:var(--mono); font-size:12px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="logo">
+    <div class="logo-mark"></div>
+    <div>
+      <div class="logo-text">COMPLIANCE MAPPING</div>
+      <div class="logo-sub">Meridian Financial Group — Nessus findings → Framework controls</div>
+    </div>
+  </div>
+  <div class="header-meta">
+    <span class="scan-badge">● NIST CSF 2.0 · ISO 27001:2022 · PCI DSS 4.0</span>
+  </div>
+</div>
+
+<div class="main">
+
+  <div class="legend">
+    <div class="leg"><div class="leg-dot" style="background:var(--nist-text)"></div>NIST CSF 2.0</div>
+    <div class="leg"><div class="leg-dot" style="background:var(--iso-text)"></div>ISO 27001:2022</div>
+    <div class="leg"><div class="leg-dot" style="background:var(--pci-text)"></div>PCI DSS 4.0</div>
+  </div>
+
+  <div class="filter-bar">
+    <span class="filter-label">Severity</span>
+    <button class="pill active" data-sev="all" onclick="setFilter('sev','all',this)">All</button>
+    <button class="pill" data-sev="Critical" onclick="setFilter('sev','Critical',this)">Critical</button>
+    <button class="pill" data-sev="High" onclick="setFilter('sev','High',this)">High</button>
+    <button class="pill" data-sev="Medium" onclick="setFilter('sev','Medium',this)">Medium</button>
+    <button class="pill" data-sev="Low" onclick="setFilter('sev','Low',this)">Low</button>
+    <span class="filter-label" style="margin-left:12px">Framework</span>
+    <button class="pill active" data-fw="all" onclick="setFilter('fw','all',this)">All</button>
+    <button class="pill" data-fw="nist" onclick="setFilter('fw','nist',this)">NIST CSF</button>
+    <button class="pill" data-fw="iso" onclick="setFilter('fw','iso',this)">ISO 27001</button>
+    <button class="pill" data-fw="pci" onclick="setFilter('fw','pci',this)">PCI DSS</button>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th style="width:24px"></th>
+          <th>Vulnerability</th>
+          <th>Severity</th>
+          <th>NIST CSF 2.0</th>
+          <th>ISO 27001:2022</th>
+          <th>PCI DSS 4.0</th>
+        </tr>
+      </thead>
+      <tbody id="tbody"></tbody>
+    </table>
+    <div id="empty" class="empty" style="display:none">No findings match selected filters.</div>
+  </div>
+
+</div>
+
+<script>
+const data = [
+  {
+    sev:"Critical", name:"MS17-010 EternalBlue (SMBv1 RCE)", host:"10.10.1.45", cvss:"9.8",
+    nist:["ID.RA-1","ID.RA-5","PR.IP-12","RS.MI-3"],
+    iso:["A.8.8","A.8.19","A.12.6.1"],
+    pci:["Req 6.3.3","Req 11.3.1","Req 12.3.3"],
+    rationale:"An unpatched RCE with CVSS 9.8 is a direct failure of vulnerability identification (ID.RA-1) and patch management (PR.IP-12). Under PCI DSS, this fails the internal scan requirement (Req 11.3.1) and triggers a mandatory remediation window before compliance sign-off. ISO 27001 A.8.8 requires timely patching of technical vulnerabilities."
+  },
+  {
+    sev:"Critical", name:"Apache Log4Shell (Log4j RCE)", host:"172.16.5.10", cvss:"10.0",
+    nist:["ID.RA-1","ID.RA-5","PR.IP-12","DE.CM-4","RS.MI-3"],
+    iso:["A.8.8","A.12.6.1","A.16.1.4"],
+    pci:["Req 6.2.4","Req 6.3.3","Req 11.3.1","Req 12.10.1"],
+    rationale:"Log4Shell (CVSS 10.0) maps to five NIST CSF controls across Identify, Protect, Detect, and Respond — a single finding touching your entire security lifecycle signals a process failure, not just a patching gap. PCI DSS Req 6.2.4 mandates protection against known attack techniques including JNDI injection."
+  },
+  {
+    sev:"High", name:"SSL/TLS POODLE — SSLv3 Padding Oracle", host:"10.10.2.8", cvss:"7.4",
+    nist:["PR.DS-2","PR.DS-5","ID.RA-1"],
+    iso:["A.8.24","A.8.28","A.8.8"],
+    pci:["Req 4.2.1","Req 6.3.3","Req 12.3.3"],
+    rationale:"Use of deprecated SSLv3 directly violates PCI DSS Req 4.2.1, which mandates strong cryptography for data in transit. ISO 27001 A.8.24 requires a formal cryptography policy. NIST CSF PR.DS-2 covers protection of data in transit commensurate with risk."
+  },
+  {
+    sev:"High", name:"OpenSSL Heartbleed (CVE-2014-0160)", host:"10.10.2.8", cvss:"7.5",
+    nist:["ID.RA-1","PR.DS-5","PR.IP-12","DE.CM-4"],
+    iso:["A.8.8","A.8.24","A.12.6.1"],
+    pci:["Req 4.2.1","Req 6.3.3","Req 11.3.1"],
+    rationale:"Heartbleed allows memory disclosure of private keys and session data — a data protection failure (PR.DS-5). Its age makes it a clear patch management gap (PR.IP-12). PCI DSS treats exposure of cryptographic material as a critical compliance failure across Req 4.2.1 and 11.3.1."
+  },
+  {
+    sev:"Medium", name:"SSL/TLS Weak Cipher Suites", host:"172.16.5.10", cvss:"5.9",
+    nist:["PR.DS-2","PR.DS-5"],
+    iso:["A.8.24","A.8.28"],
+    pci:["Req 4.2.1","Req 12.3.3"],
+    rationale:"RC4 and non-PFS cipher suites are explicitly prohibited under PCI DSS Req 4.2.1 for data in transit. This reads as a medium CVSS finding on a technical report — it's a QSA audit failure on a compliance report. ISO 27001 A.8.24 requires a formal cryptographic policy covering approved algorithms."
+  },
+  {
+    sev:"Medium", name:"HTTP TRACE / TRACK Methods Enabled", host:"172.16.5.10", cvss:"5.0",
+    nist:["PR.DS-5","PR.AC-3"],
+    iso:["A.8.28","A.8.22"],
+    pci:["Req 6.2.4","Req 6.3.1"],
+    rationale:"TRACE/TRACK enables cross-site tracing (XST) attacks that can bypass XSS protections and read HTTP-only cookies. PCI DSS Req 6.2.4 mandates protection from injection attack techniques. ISO 27001 A.8.28 covers secure coding practices and disabling unused or dangerous server features."
+  },
+  {
+    sev:"Medium", name:"ICMP Timestamp Request Remote Date Disclosure", host:"10.10.2.8", cvss:"5.3",
+    nist:["PR.AC-3","PR.DS-5"],
+    iso:["A.8.22","A.8.20"],
+    pci:["Req 1.3.2","Req 6.3.3"],
+    rationale:"Information disclosure that aids time-based attacks. ISO 27001 A.8.22 requires restriction of unnecessary network services. PCI DSS Req 1.3.2 mandates restricting inbound traffic to only what is necessary for the cardholder data environment."
+  },
+  {
+    sev:"Low", name:"SSH Protocol Version 1 Supported", host:"172.16.5.10", cvss:"2.6",
+    nist:["PR.AC-3","PR.DS-2"],
+    iso:["A.8.20","A.8.24"],
+    pci:["Req 4.2.1","Req 2.2.1"],
+    rationale:"SSHv1 is cryptographically broken. PCI DSS Req 2.2.1 requires systems to be configured according to industry-accepted hardening standards — none of which permit SSHv1. Req 4.2.1 prohibits broken cryptography for data in transit. ISO 27001 A.8.20 covers network security controls."
+  }
+];
+
+let sevFilter = 'all';
+let fwFilter  = 'all';
+let openIdx   = null;
+
+const sevActiveClass = { Critical:'c-active', High:'h-active', Medium:'m-active', Low:'l-active' };
+
+function setFilter(type, val, el) {
+  if (type === 'sev') {
+    sevFilter = val;
+    document.querySelectorAll('[data-sev]').forEach(b => {
+      b.classList.remove('active','c-active','h-active','m-active','l-active');
+    });
+    el.classList.add(sevActiveClass[val] || 'active');
+  } else {
+    fwFilter = val;
+    document.querySelectorAll('[data-fw]').forEach(b => b.classList.remove('active'));
+    el.classList.add('active');
+  }
+  openIdx = null;
+  render();
+}
+
+function tags(arr, cls, max) {
+  let out = arr.slice(0, max).map(t => `<span class="tag tag-${cls}">${t}</span>`).join('');
+  if (arr.length > max) out += `<span class="tag tag-more">+${arr.length - max}</span>`;
+  return out;
+}
+
+function render() {
+  const tbody = document.getElementById('tbody');
+  const empty = document.getElementById('empty');
+  tbody.innerHTML = '';
+
+  const filtered = data.filter(d => {
+    const sevOk = sevFilter === 'all' || d.sev === sevFilter;
+    const fwOk  = fwFilter  === 'all' ||
+      (fwFilter === 'nist' && d.nist.length) ||
+      (fwFilter === 'iso'  && d.iso.length)  ||
+      (fwFilter === 'pci'  && d.pci.length);
+    return sevOk && fwOk;
+  });
+
+  empty.style.display = filtered.length === 0 ? 'block' : 'none';
+
+  filtered.forEach((d, i) => {
+    const tr = document.createElement('tr');
+    if (openIdx === i) tr.classList.add('open');
+    tr.onclick = () => { openIdx = openIdx === i ? null : i; render(); };
+    tr.innerHTML = `
+      <td><span class="chevron">▶</span></td>
+      <td>
+        <div class="vuln-name">${d.name}</div>
+        <div class="host-meta">${d.host} · CVSS ${d.cvss}</div>
+      </td>
+      <td><span class="sev-pill sev-${d.sev}">${d.sev.toUpperCase()}</span></td>
+      <td>${tags(d.nist,'nist',2)}</td>
+      <td>${tags(d.iso,'iso',2)}</td>
+      <td>${tags(d.pci,'pci',2)}</td>
+    `;
+    tbody.appendChild(tr);
+
+    if (openIdx === i) {
+      const det = document.createElement('tr');
+      det.innerHTML = `<td colspan="6" class="detail-cell">
+        <div class="detail-inner">
+          <div class="detail-grid">
+            <div>
+              <div class="dg-label">NIST CSF 2.0</div>
+              <div class="dg-tags">${d.nist.map(t=>`<span class="tag tag-nist">${t}</span>`).join('')}</div>
+            </div>
+            <div>
+              <div class="dg-label">ISO 27001:2022</div>
+              <div class="dg-tags">${d.iso.map(t=>`<span class="tag tag-iso">${t}</span>`).join('')}</div>
+            </div>
+            <div>
+              <div class="dg-label">PCI DSS 4.0</div>
+              <div class="dg-tags">${d.pci.map(t=>`<span class="tag tag-pci">${t}</span>`).join('')}</div>
+            </div>
+          </div>
+          <div class="rationale-label">Compliance rationale</div>
+          <div class="rationale-block">${d.rationale}</div>
+        </div>
+      </td>`;
+      tbody.appendChild(det);
+    }
+  });
+}
+
+render();
+</script>
+</body>
+</html>
