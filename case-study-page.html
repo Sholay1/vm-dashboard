@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vulnerability Risk Intelligence — Shola Hassan</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Fraunces:ital,wght@0,300;0,400;0,600;1,300;1,400&family=IBM+Plex+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0c10;
+    --surface: #10131a;
+    --surface2: #161b24;
+    --border: #1e2433;
+    --border2: #252d3d;
+    --text: #b8c4d8;
+    --text2: #6b7a94;
+    --white: #e8edf5;
+    --accent: #00a8ff;
+    --critical: #ff3b5c;
+    --high: #ff7b00;
+    --medium: #f5c400;
+    --low: #2ecc71;
+    --mono: 'IBM Plex Mono', monospace;
+    --serif: 'Fraunces', Georgia, serif;
+    --sans: 'IBM Plex Sans', sans-serif;
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html { scroll-behavior: smooth; }
+  body { background: var(--bg); color: var(--text); font-family: var(--sans); font-size:15px; line-height:1.7; overflow-x:hidden; }
+
+  nav {
+    position: fixed; top:0; left:0; right:0; z-index:100;
+    background: rgba(10,12,16,0.92); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 48px; height: 60px;
+  }
+  .nav-brand { font-family: var(--mono); font-size:12px; color: var(--accent); letter-spacing:2px; text-transform:uppercase; }
+  .nav-links { display:flex; gap:32px; }
+  .nav-links a { font-family: var(--mono); font-size:11px; color: var(--text2); text-decoration:none; letter-spacing:1px; text-transform:uppercase; transition: color .2s; }
+  .nav-links a:hover { color: var(--white); }
+
+  .hero {
+    min-height: 100vh; display:flex; flex-direction:column;
+    justify-content:center; padding: 120px 80px 80px;
+    position:relative; overflow:hidden;
+  }
+  .hero::before {
+    content:''; position:absolute; top:0; left:0; right:0; bottom:0;
+    background:
+      radial-gradient(ellipse 60% 50% at 70% 40%, rgba(0,168,255,0.04) 0%, transparent 70%),
+      radial-gradient(ellipse 40% 60% at 20% 70%, rgba(0,168,255,0.02) 0%, transparent 60%);
+    pointer-events:none;
+  }
+  .hero-eyebrow { font-family: var(--mono); font-size:11px; color: var(--accent); letter-spacing:3px; text-transform:uppercase; margin-bottom:28px; display:flex; align-items:center; gap:12px; }
+  .hero-eyebrow::before { content:''; width:32px; height:1px; background: var(--accent); }
+  .hero h1 { font-family: var(--serif); font-size:clamp(42px,6vw,76px); font-weight:300; color: var(--white); line-height:1.1; max-width:900px; margin-bottom:16px; }
+  .hero h1 em { font-style:italic; color: var(--accent); }
+  .hero-sub { font-family: var(--serif); font-size:clamp(16px,2vw,22px); font-weight:300; color: var(--text2); margin-bottom:40px; max-width:720px; font-style:italic; line-height:1.6; }
+  .hero-meta { display:flex; gap:48px; margin-bottom:56px; flex-wrap:wrap; }
+  .meta-label { font-family:var(--mono); font-size:10px; color:var(--text2); letter-spacing:1.5px; text-transform:uppercase; margin-bottom:4px; }
+  .meta-value { font-family:var(--mono); font-size:13px; color:var(--white); }
+  .hero-buttons { display:flex; gap:16px; flex-wrap:wrap; }
+  .btn { font-family: var(--mono); font-size:11px; letter-spacing:1.5px; text-transform:uppercase; padding:14px 28px; border-radius:2px; text-decoration:none; transition: all .2s; display:inline-flex; align-items:center; gap:10px; }
+  .btn-primary { background: var(--accent); color: #000; }
+  .btn-primary:hover { background: #33bbff; }
+  .btn-outline { background: transparent; color: var(--text); border:1px solid var(--border2); }
+  .btn-outline:hover { border-color: var(--accent); color: var(--accent); }
+  .scroll-indicator { position:absolute; bottom:40px; left:80px; font-family:var(--mono); font-size:10px; color:var(--text2); letter-spacing:2px; text-transform:uppercase; display:flex; align-items:center; gap:12px; }
+  .scroll-line { width:40px; height:1px; background:var(--border2); }
+
+  section { padding: 100px 80px; position:relative; }
+  section.alt { background: var(--surface); }
+
+  .section-eyebrow { font-family: var(--mono); font-size:10px; color: var(--accent); letter-spacing:3px; text-transform:uppercase; margin-bottom:16px; display:flex; align-items:center; gap:12px; }
+  .section-eyebrow::before { content:''; width:24px; height:1px; background:var(--accent); }
+  .section-title { font-family: var(--serif); font-size:clamp(28px,4vw,48px); font-weight:300; color: var(--white); line-height:1.2; margin-bottom:16px; }
+  .section-title em { font-style:italic; color:var(--accent); }
+  .section-lead { font-family: var(--serif); font-size:18px; font-weight:300; color:var(--text2); font-style:italic; max-width:680px; margin-bottom:40px; line-height:1.6; }
+
+  .alert-bar { background: rgba(255,59,92,0.07); border:1px solid rgba(255,59,92,0.2); border-left: 3px solid var(--critical); border-radius:2px; padding:20px 24px; margin-bottom:36px; }
+  .alert-bar p { font-size:14px; color:var(--text); line-height:1.75; }
+  .alert-bar strong { color:var(--critical); }
+
+  .brief-grid { display:grid; grid-template-columns:1fr 1fr; gap:48px; margin-bottom:56px; }
+  .brief-block p { font-size:14px; color:var(--text); line-height:1.85; margin-bottom:14px; }
+  .brief-block ul { padding-left:20px; margin-bottom:14px; }
+  .brief-block ul li { font-size:14px; color:var(--text); line-height:1.85; margin-bottom:6px; }
+
+  .findings-strip { display:grid; grid-template-columns:repeat(4,1fr); gap:1px; background:var(--border); border:1px solid var(--border); border-radius:3px; overflow:hidden; margin-bottom:20px; }
+  .finding-cell { background:var(--surface2); padding:28px 20px; text-align:center; }
+  .finding-num { font-family:var(--mono); font-size:40px; font-weight:600; line-height:1; margin-bottom:6px; }
+  .finding-num.c { color:var(--critical); }
+  .finding-num.h { color:var(--high); }
+  .finding-num.m { color:var(--medium); }
+  .finding-num.l { color:var(--low); }
+  .finding-label { font-family:var(--mono); font-size:10px; color:var(--text2); letter-spacing:1px; text-transform:uppercase; }
+
+  .iframe-section { padding:0; }
+  .iframe-header { padding:64px 80px 36px; }
+  .iframe-header.alt { background:var(--surface); }
+  .iframe-wrap { border-top:1px solid var(--border); }
+  .iframe-wrap iframe { width:100%; border:none; display:block; }
+
+  .analysis-block { background:var(--surface2); border:1px solid var(--border); border-radius:3px; padding:36px; margin-bottom:40px; }
+  .analysis-block-title { font-family:var(--mono); font-size:10px; color:var(--accent); letter-spacing:2px; text-transform:uppercase; margin-bottom:20px; padding-bottom:12px; border-bottom:1px solid var(--border); }
+  .analysis-block p { font-size:14px; color:var(--text); line-height:1.85; margin-bottom:12px; }
+  .analysis-block p:last-child { margin-bottom:0; }
+
+  .finding-entry { margin-bottom:48px; padding-bottom:48px; border-bottom:1px solid var(--border); }
+  .finding-entry:last-child { border-bottom:none; margin-bottom:0; padding-bottom:0; }
+  .finding-entry h3 { font-family:var(--serif); font-size:24px; font-weight:400; color:var(--white); margin-bottom:8px; }
+  .finding-entry .cvss-tag { font-family:var(--mono); font-size:11px; padding:3px 10px; border-radius:2px; margin-bottom:20px; display:inline-block; }
+  .finding-entry p { font-size:14px; color:var(--text); line-height:1.85; margin-bottom:12px; }
+
+  .control-map { margin-top:20px; }
+  .control-line { font-family:var(--mono); font-size:11px; color:var(--text2); padding:8px 0; border-bottom:1px solid var(--border); display:flex; gap:16px; align-items:baseline; }
+  .control-line:last-child { border-bottom:none; }
+  .ctrl-fw { color:var(--accent); min-width:90px; flex-shrink:0; }
+
+  .outcomes-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:24px; margin-top:56px; }
+  .outcome-card { background:var(--surface2); border:1px solid var(--border); border-radius:3px; padding:28px 24px; }
+  .outcome-num { font-family:var(--mono); font-size:40px; font-weight:600; color:var(--accent); line-height:1; margin-bottom:8px; }
+  .outcome-label { font-family:var(--mono); font-size:10px; color:var(--text2); letter-spacing:1px; text-transform:uppercase; margin-bottom:12px; }
+  .outcome-desc { font-size:13px; color:var(--text); line-height:1.75; }
+
+  .contact-grid { display:grid; grid-template-columns:1fr 1fr; gap:64px; align-items:start; }
+  .contact-left h2 { font-family:var(--serif); font-size:clamp(28px,4vw,44px); font-weight:300; color:var(--white); margin-bottom:16px; line-height:1.2; }
+  .contact-left p { font-size:14px; color:var(--text); line-height:1.85; margin-bottom:20px; }
+  .contact-items { display:flex; flex-direction:column; gap:12px; }
+  .contact-item { display:flex; align-items:center; gap:16px; padding:18px 22px; background:var(--surface2); border:1px solid var(--border); border-radius:3px; text-decoration:none; transition: border-color .2s; }
+  .contact-item:hover { border-color:var(--accent); }
+  .contact-item-label { font-family:var(--mono); font-size:10px; color:var(--text2); letter-spacing:1px; text-transform:uppercase; margin-bottom:3px; }
+  .contact-item-value { font-family:var(--mono); font-size:13px; color:var(--white); }
+
+  .cred-title { font-family:var(--mono); font-size:10px; color:var(--accent); letter-spacing:2px; text-transform:uppercase; margin-bottom:16px; padding-bottom:12px; border-bottom:1px solid var(--border); }
+  .cred-list { list-style:none; display:flex; flex-direction:column; gap:10px; margin-bottom:32px; }
+  .cred-list li { font-family:var(--mono); font-size:12px; color:var(--text); display:flex; align-items:center; gap:10px; }
+  .cred-list li::before { content:'▸'; color:var(--accent); font-size:10px; }
+
+  footer { border-top:1px solid var(--border); padding:32px 80px; display:flex; justify-content:space-between; align-items:center; }
+  footer p { font-family:var(--mono); font-size:11px; color:var(--text2); }
+
+  @keyframes fadeUp { from { opacity:0; transform:translateY(24px); } to { opacity:1; transform:translateY(0); } }
+  .hero > * { animation: fadeUp .8s ease both; }
+  .hero-eyebrow { animation-delay:.1s; }
+  .hero h1      { animation-delay:.2s; }
+  .hero-sub     { animation-delay:.3s; }
+  .hero-meta    { animation-delay:.4s; }
+  .hero-buttons { animation-delay:.5s; }
+
+  @media (max-width:900px) {
+    nav { padding:0 24px; }
+    .hero { padding:100px 28px 64px; }
+    section { padding:64px 28px; }
+    .brief-grid, .contact-grid { grid-template-columns:1fr; gap:32px; }
+    .findings-strip { grid-template-columns:repeat(2,1fr); }
+    .outcomes-grid { grid-template-columns:1fr; }
+    .iframe-header { padding:48px 28px 28px; }
+    footer { flex-direction:column; gap:12px; padding:24px 28px; text-align:center; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-brand">Shola Hassan · GRC</div>
+  <div class="nav-links">
+    <a href="#overview">Executive Brief</a>
+    <a href="#dashboard">Dashboard</a>
+    <a href="#mapping">Mapping</a>
+    <a href="#case-study">Case Study</a>
+    <a href="#contact">Engage</a>
+  </div>
+</nav>
+
+<section class="hero" id="top">
+  <div class="hero-eyebrow">Enterprise Security Assessment · Finance Anonymous LLC (Anonymised Engagement)</div>
+  <h1>Vulnerability Risk <em>Intelligence</em><br>& Compliance Assurance</h1>
+  <p class="hero-sub">A risk-led assessment of enterprise vulnerability exposure, translating technical findings into audit impact, regulatory exposure, and remediation priorities aligned to NIST CSF 2.0, ISO 27001:2022, and PCI DSS 4.0.</p>
+  <div class="hero-meta">
+    <div><div class="meta-label">Engagement Type</div><div class="meta-value">Internal Vulnerability Assessment</div></div>
+    <div><div class="meta-label">Environment</div><div class="meta-value">Segmented Enterprise Network</div></div>
+    <div><div class="meta-label">Assets Assessed</div><div class="meta-value">58 Targeted · 54 Active</div></div>
+    <div><div class="meta-label">Assessment Period</div><div class="meta-value">Q1 2025</div></div>
+    <div><div class="meta-label">Lead</div><div class="meta-value">Shola Hassan, MBA</div></div>
+  </div>
+  <div class="hero-buttons">
+    <a href="#overview" class="btn btn-primary">↓ Executive Brief</a>
+    <a href="#dashboard" class="btn btn-outline">↓ Dashboard</a>
+    <a href="#mapping" class="btn btn-outline">↓ Compliance Mapping</a>
+    <a href="#case-study" class="btn btn-outline">↓ Case Study</a>
+  </div>
+  <div class="scroll-indicator"><div class="scroll-line"></div>Scroll to explore</div>
+</section>
+
+<section id="overview" class="alt">
+  <div class="section-eyebrow">Executive Risk Brief</div>
+  <h2 class="section-title">Assessment <em>Summary & Risk Position</em></h2>
+  <p class="section-lead">What the findings mean for audit readiness, regulatory standing, and remediation prioritisation.</p>
+
+  <div class="alert-bar">
+    <p><strong>Current vulnerability posture would fail PCI DSS internal scan requirements.</strong> This assessment identified 23 critical and 47 high-risk vulnerabilities across infrastructure supporting financial operations. In its current state, the environment presents immediate regulatory exposure and a high likelihood of audit failure.</p>
+    <p style="font-size:14px;color:var(--white);margin-top:12px;font-weight:500;">In its current state, this environment is not audit-ready, not risk-aligned, and not defensible under regulatory scrutiny.</p>
+  </div>
+
+  <div class="brief-grid">
+    <div class="brief-block">
+      <p>Beyond individual findings, the primary risk is structural: a growing remediation backlog combined with inconsistent risk prioritisation.</p>
+      <p>Vulnerabilities are being identified, but not consistently translated into control failures, audit-relevant remediation actions, or business-aligned risk decisions.</p>
+      <p>This gap results in failed compliance assessments, delayed certifications, and measurable financial impact.</p>
+    </div>
+    <div class="brief-block">
+      <p>Observed patterns indicate systemic control deficiencies in vulnerability management — not isolated gaps. Three immediate concerns:</p>
+      <ul>
+        <li>Actively exploitable vulnerabilities introduce credible breach pathways with material financial impact</li>
+        <li>Current posture would fail PCI DSS internal scan requirements without significant remediation</li>
+        <li>Remediation activity is occurring but not producing audit-ready outputs or risk-aligned prioritisation decisions</li>
+      </ul>
+      <p>This engagement translates technical findings into business risk, regulatory consequence, and prioritised remediation actions.</p>
+    </div>
+  </div>
+
+  <div class="section-eyebrow">Vulnerability Exposure Summary</div>
+  <h3 style="font-family:var(--serif);font-size:28px;font-weight:300;color:var(--white);margin-bottom:24px;">Finding Distribution <em style="font-style:italic;color:var(--accent)">by Severity</em></h3>
+  <div class="findings-strip">
+    <div class="finding-cell"><div class="finding-num c">23</div><div class="finding-label">Critical · CVSS ≥ 9.0</div></div>
+    <div class="finding-cell"><div class="finding-num h">47</div><div class="finding-label">High · CVSS 7.0–8.9</div></div>
+    <div class="finding-cell"><div class="finding-num m">134</div><div class="finding-label">Medium · CVSS 4.0–6.9</div></div>
+    <div class="finding-cell"><div class="finding-num l">89</div><div class="finding-label">Low · CVSS 0.1–3.9</div></div>
+  </div>
+  <p style="font-family:var(--mono);font-size:12px;color:var(--text2);margin-top:12px;">This distribution reflects a vulnerability management programme under pressure — high-risk findings accumulating faster than they are being remediated. The concentration of critical and high findings indicates elevated likelihood of exploitation, combined with direct implications for audit outcomes and regulatory standing.</p>
+</section>
+
+<div id="dashboard" class="iframe-section">
+  <div class="iframe-header">
+    <div class="section-eyebrow">Live Technical Output</div>
+    <h2 class="section-title">Vulnerability <em>Intelligence Dashboard</em></h2>
+    <p class="section-lead">Interactive scan output providing host-level visibility into vulnerability exposure, exploitability, and remediation requirements. Findings are presented with CVE references, CVSS scoring, and prioritisation aligned to business risk and regulatory impact rather than severity alone.</p>
+  </div>
+  <div class="iframe-wrap">
+    <iframe src="https://sholay1.github.io/vm-dashboard/vulnerability-dashboard.html" height="1150" scrolling="no" title="Vulnerability Intelligence Dashboard"></iframe>
+  </div>
+</div>
+
+<div id="mapping" class="iframe-section">
+  <div class="iframe-header alt">
+    <div class="section-eyebrow">Regulatory Control Alignment</div>
+    <h2 class="section-title">Regulatory <em>Control Mapping</em></h2>
+    <p class="section-lead">Each vulnerability mapped to specific control obligations across NIST CSF 2.0, ISO 27001:2022 Annex A, and PCI DSS 4.0. This converts technical findings into audit-relevant control failures, enabling direct alignment between remediation activity and compliance outcomes. Filter by severity or framework — expand any row for full rationale.</p>
+  </div>
+  <div class="iframe-wrap">
+    <iframe src="https://sholay1.github.io/vm-dashboard/compliance_mapping.html" height="780" scrolling="no" title="Regulatory Control Mapping"></iframe>
+  </div>
+</div>
+
+<section id="case-study">
+  <div class="section-eyebrow">Analysis & Findings</div>
+  <h2 class="section-title">Technical Risk <em>Analysis</em></h2>
+  <p class="section-lead">A practitioner-level review of critical findings and what they mean for control environment integrity, audit position, and regulatory standing.</p>
+
+  <div class="analysis-block">
+    <div class="analysis-block-title">Programme-Level Observation</div>
+    <p>The primary issue is not the presence of vulnerabilities, but the absence of consistent translation between technical findings and governance outcomes.</p>
+    <p>Vulnerability management activities are occurring, but they are not producing audit-ready outputs or risk-aligned remediation decisions. The result is a programme that generates reports but does not reduce audit exposure — which is the actual measure of effectiveness in a regulated environment.</p>
+    <p>The three findings below illustrate this pattern from different angles: a patch governance failure, a monitoring and response gap, and a compliance prioritisation error.</p>
+  </div>
+
+  <div class="finding-entry">
+    <h3>MS17-010 — EternalBlue SMBv1 Remote Code Execution</h3>
+    <span class="cvss-tag" style="background:rgba(255,59,92,.12);color:var(--critical);border:1px solid rgba(255,59,92,.25);">CVSS 9.8 · Critical · CVE-2017-0144</span>
+    <p>An unpatched remote code execution vulnerability of this age on a financial database server indicates a breakdown in asset visibility, patch governance, or remediation enforcement — or all three. This is not a missed patch. It is a control failure that has persisted for eight years.</p>
+    <p>From an audit perspective, this finding results in immediate failure under PCI DSS internal scanning requirements. Req 11.3.1 requires that scans show no high or critical findings before a compliant result can be submitted. A single EternalBlue finding on a financial system blocks compliance sign-off, irrespective of what else has been remediated.</p>
+    <p>Under ISO 27001 A.8.8, the organisation has a documented obligation to manage technical vulnerabilities in a timely manner. The presence of this finding would be a direct nonconformity in a certification audit. Under NIST CSF, it maps to failures in vulnerability identification, patch management planning, and incident mitigation — spanning the Identify, Protect, and Respond functions simultaneously.</p>
+    <div class="control-map">
+      <div class="control-line"><span class="ctrl-fw">NIST CSF</span>ID.RA-1 · ID.RA-5 · PR.IP-12 · RS.MI-3</div>
+      <div class="control-line"><span class="ctrl-fw">ISO 27001</span>A.8.8 · A.8.19 · A.12.6.1</div>
+      <div class="control-line"><span class="ctrl-fw">PCI DSS</span>Req 6.3.3 · Req 11.3.1 · Req 12.3.3</div>
+    </div>
+  </div>
+
+  <div class="finding-entry">
+    <h3>Apache Log4Shell — Log4j Remote Code Execution</h3>
+    <span class="cvss-tag" style="background:rgba(255,59,92,.12);color:var(--critical);border:1px solid rgba(255,59,92,.25);">CVSS 10.0 · Critical · CVE-2021-44228</span>
+    <p>A critical vulnerability with active exploitation pathways affecting an internet-facing system in a DMZ segment. The placement matters: this is not an internal server with network controls limiting reachability. It is a publicly accessible web server carrying a maximum-severity, zero-authentication remote code execution vulnerability.</p>
+    <p>Log4Shell introduces high-probability breach risk and triggers obligations across multiple control domains simultaneously — vulnerability management, monitoring and detection, and incident response. When a single finding maps to five NIST CSF subcategories spanning four function areas, the finding is not the primary problem. The primary problem is that the programme did not catch it through monitoring, did not prevent it through patch policy, and was not informed by threat intelligence that would have flagged it as a priority.</p>
+    <p>PCI DSS Req 6.2.4 mandates protection against known injection attack techniques including JNDI-based vectors. Req 12.10.1 requires an incident response plan adequate to a breach of this severity. The compliance exposure is not limited to the scan result — it extends to whether the organisation's response capability is proportionate to the risk.</p>
+    <div class="control-map">
+      <div class="control-line"><span class="ctrl-fw">NIST CSF</span>ID.RA-1 · ID.RA-5 · PR.IP-12 · DE.CM-4 · RS.MI-3</div>
+      <div class="control-line"><span class="ctrl-fw">ISO 27001</span>A.8.8 · A.12.6.1 · A.16.1.4</div>
+      <div class="control-line"><span class="ctrl-fw">PCI DSS</span>Req 6.2.4 · Req 6.3.3 · Req 11.3.1 · Req 12.10.1</div>
+    </div>
+  </div>
+
+  <div class="finding-entry">
+    <h3>SSL/TLS Weak Cipher Suites — A Compliance Failure at CVSS 5.9</h3>
+    <span class="cvss-tag" style="background:rgba(245,196,0,.12);color:var(--medium);border:1px solid rgba(245,196,0,.25);">CVSS 5.9 · Medium · RC4 · Non-PFS Ciphers</span>
+    <p>While moderate in CVSS scoring, this finding represents explicit non-compliance under PCI DSS encryption requirements. RC4 and cipher suites without forward secrecy are prohibited under Req 4.2.1 for the protection of cardholder data in transit. There is no CVSS threshold that overrides an explicit requirement.</p>
+    <p>This is where severity-based prioritisation produces the wrong outcome. A CVSS-only remediation backlog would rank this below dozens of higher-scoring findings and likely defer it. A compliance-aware programme recognises that this finding will appear on the audit report regardless of its technical score — and that appearing on an audit report has consequences that a CVSS 5.9 threshold does not capture.</p>
+    <p>The practical argument for compliance-integrated vulnerability management: the gap between what gets fixed and what gets flagged at audit is often not the highest-severity findings. It is the medium findings with explicit regulatory prohibitions that the technical triage process missed.</p>
+    <div class="control-map">
+      <div class="control-line"><span class="ctrl-fw">NIST CSF</span>PR.DS-2 · PR.DS-5</div>
+      <div class="control-line"><span class="ctrl-fw">ISO 27001</span>A.8.24 · A.8.28</div>
+      <div class="control-line"><span class="ctrl-fw">PCI DSS</span>Req 4.2.1 · Req 12.3.3</div>
+    </div>
+  </div>
+
+  <div class="outcomes-grid">
+    <div class="outcome-card">
+      <div class="outcome-num">8yr</div>
+      <div class="outcome-label">Unpatched — EternalBlue</div>
+      <div class="outcome-desc">A 2017 vulnerability on a financial database server in 2025 indicates absent asset inventory, a non-functioning patch workflow, or an exception process with no compensating controls. Any of the three is an audit finding under ISO 27001 A.8.8 and NIST PR.IP-12.</div>
+    </div>
+    <div class="outcome-card">
+      <div class="outcome-num">5</div>
+      <div class="outcome-label">NIST Functions — Log4Shell</div>
+      <div class="outcome-desc">Mapping to Identify, Protect, Detect, and Respond simultaneously signals that the vulnerability was not caught by monitoring, not prevented by patch policy, and not threat-intelligence-informed. The remediation is the patch. The programme gap is larger.</div>
+    </div>
+    <div class="outcome-card">
+      <div class="outcome-num">0</div>
+      <div class="outcome-label">Passing PCI Scans — Current State</div>
+      <div class="outcome-desc">EternalBlue, Log4Shell, Heartbleed, POODLE, and weak TLS ciphers each independently fail PCI DSS internal scan requirements. An organisation carrying all five into a QSA assessment is not approaching compliance — it is facing a significant remediation programme before any evidence submission is viable.</div>
+    </div>
+  </div>
+</section>
+
+<section id="contact" class="alt">
+  <div class="contact-grid">
+    <div class="contact-left">
+      <div class="section-eyebrow">Advisory & Engagement</div>
+      <h2>Let's discuss <em style="font-family:var(--serif);font-style:italic;color:var(--accent)">your programme.</em></h2>
+      <p>Organisations with similar profiles are typically facing hidden audit exposure, unmanaged remediation backlog, and unclear alignment between security operations and compliance requirements.</p>
+      <p>Engagements focus on translating vulnerability data into control-level insights, reducing audit risk, and aligning remediation with business impact — across NIST CSF, ISO 27001, PCI DSS, and OSFI regulatory obligations.</p>
+      <div class="contact-items">
+        <a href="/cdn-cgi/l/email-protection#394a5156555851584a4a58570808795e54585055175a5654" class="contact-item">
+          <div><div class="contact-item-label">Email</div><div class="contact-item-value"><span class="__cf_email__" data-cfemail="493a2126252821283a3a28277878092e24282025672a2624">[email&#160;protected]</span></div></div>
+        </a>
+        <a href="https://www.linkedin.com/in/hassanshola" target="_blank" class="contact-item">
+          <div><div class="contact-item-label">LinkedIn</div><div class="contact-item-value">linkedin.com/in/hassanshola</div></div>
+        </a>
+        <a href="https://www.sholahassan.com/project" target="_blank" class="contact-item">
+          <div><div class="contact-item-label">Portfolio</div><div class="contact-item-value">sholahassan.com/project</div></div>
+        </a>
+      </div>
+    </div>
+    <div>
+      <div class="cred-title">Credentials & Certifications</div>
+      <ul class="cred-list">
+        <li>ISO/IEC 27001:2022 Lead Auditor</li>
+        <li>CompTIA Security+</li>
+        <li>CompTIA CySA+</li>
+        <li>CompTIA A+</li>
+        <li>ISC² Certified in Cybersecurity (CC)</li>
+        <li>ISC² Junior Cybersecurity Analyst</li>
+        <li>Master of Business Administration (MBA)</li>
+        <li>Diploma in Cybersecurity</li>
+      </ul>
+      <div class="cred-title">Domain Expertise</div>
+      <ul class="cred-list">
+        <li>NIST CSF 2.0 · SP 800-30 · SP 800-53</li>
+        <li>ISO 27001 · SOC 2 · COBIT 2019</li>
+        <li>PCI DSS 4.0 · GDPR · OSFI B-10/B-13 · RPAA</li>
+        <li>Third-Party & Vendor Risk (TPRM)</li>
+        <li>Authorization to Operate (ATO) · POA&M</li>
+        <li>Internal Audit & Evidence Management</li>
+        <li>Vulnerability Assessment & Risk Triage</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <p>© 2025 Shola Hassan · 
